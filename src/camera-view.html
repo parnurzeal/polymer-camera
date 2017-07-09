@@ -1,0 +1,144 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="../bower_components/polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/image-icons.html">
+<dom-module id="camera-view">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+      #photoContainer {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 100%;
+      }
+      #photoPanel {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      paper-tabs {
+        width: 100%;
+      }
+      paper-tab {
+        --paper-tab-ink: white;
+      }
+      paper-tab[link] a {
+        @apply --layout-horizontal;
+        @apply --layout-center-center;
+        color: #000;
+        text-decoration: none;
+      }
+      #processText {
+        text-align: center;
+        padding: 20px;
+        height: 35px;
+      }
+    </style>
+
+    <div id="photoContainer">
+      <img id="photoPanel" on-tap="handlePhotoPanel" src$="[[photoPanelImagePath]]"></img>
+      <input type="file" id="triggerCamera" accept="image/*" capture="camera" hidden>
+    </div>
+    <div id="processText">
+      <div id="processingSpinner" hidden$="{{!spinning}}">
+        <paper-spinner active></paper-spinner>
+        <div> processing image...</div>
+      </div>
+      <div id="notYetImplement" hidden$="{{!implementing}}">
+        Not yet implemented.
+      </div>
+    </div>
+    <paper-tabs no-bar>
+      <paper-tab link>
+        <a href="#" on-tap="chooseFromGallery" class="link" tabindex="-1">
+          Gallery
+        </a>
+      </paper-tab>
+      <paper-tab link>
+        <a href="#" on-tap="processImage" class="link" tabindex="-1">
+          <iron-icon icon="image:assistant"></iron-icon>
+          Process
+        </a>
+      </paper-tab>
+      <paper-tab link>
+        <a href="#" on-tap="labelImage" class="link" tabindex="-1">
+          Label
+        </a>
+      </paper-tab>
+    </paper-tabs>
+  </template>
+
+  <script>
+    class CameraView extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'camera-view'; }
+      static get properties() {
+        return {
+          cameraHolderImagePath: {
+            type: String,
+            readOnly: true,
+            value: '/images/camera-holder.jpg',
+          },
+          photoPanelImagePath: {
+            type: String,
+            value: '',
+          },
+          implementing: {
+            type: Boolean,
+            value: false,
+          },
+          spinning: {
+            type: Boolean,
+            value: false,
+          },
+        }
+      }
+      constructor() {
+        super();
+        this.photoPanelImagePath = this.cameraHolderImagePath;
+      }
+      ready() {
+        super.ready();
+        this.$.triggerCamera.onchange = (event) => {
+          const files = event.target.files;
+          if (files && files.length >0) {
+            const file = files[0];
+            try {
+              const url = window.URL.createObjectURL(file);
+              this.photoPanelImagePath = url;
+            } catch (e) {
+              console.log(e);
+            }
+          }
+        };
+      }
+      handlePhotoPanel() {
+        this.$.triggerCamera.click();
+      }
+      processImage() {
+        // add request to Model
+        this.implementing = false;
+        this.spinning = true;
+      }
+      labelImage() {
+        this.implementing = true;
+        this.spinning = false;
+      }
+      chooseFromGallery() {
+        this.implementing = true;
+        this.spinning = false;
+      }
+    }
+
+    window.customElements.define(CameraView.is, CameraView);
+  </script>
+</dom-module>
