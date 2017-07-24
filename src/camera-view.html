@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-icons/image-icons.html">
+<script src="../bower_components/axios/dist/axios.min.js"></script>
 <dom-module id="camera-view">
   <template>
     <style include="shared-styles">
@@ -50,12 +51,12 @@
       <input type="file" id="triggerCamera" accept="image/*" capture="camera" hidden>
     </div>
     <div id="processText">
-      <div id="processingSpinner" hidden$="{{!spinning}}">
+      <div id="processingSpinner" hidden$="{{showMsg}}">
         <paper-spinner active></paper-spinner>
         <div> processing image...</div>
       </div>
-      <div id="notYetImplement" hidden$="{{!implementing}}">
-        Not yet implemented.
+      <div id="message" hidden$="{{!showMsg}}">
+        {{message}}
       </div>
     </div>
     <paper-tabs no-bar>
@@ -92,14 +93,18 @@
             type: String,
             value: '',
           },
-          implementing: {
+          showMsg: {
             type: Boolean,
-            value: false,
+            value: true,
           },
-          spinning: {
-            type: Boolean,
-            value: false,
+          message: {
+            type: String,
+            value: '',
           },
+          file: {
+            type: Object,
+            value: {},
+          }
         }
       }
       constructor() {
@@ -111,9 +116,9 @@
         this.$.triggerCamera.onchange = (event) => {
           const files = event.target.files;
           if (files && files.length >0) {
-            const file = files[0];
+            this.file = files[0];
             try {
-              const url = window.URL.createObjectURL(file);
+              const url = window.URL.createObjectURL(this.file);
               this.photoPanelImagePath = url;
             } catch (e) {
               console.log(e);
@@ -126,16 +131,32 @@
       }
       processImage() {
         // add request to Model
-        this.implementing = false;
-        this.spinning = true;
+        this.showMsg = false;
+        console.log(this.file);
+        let data = new FormData();
+        data.append('file', this.file);
+        axios.post('/api/processImage', data, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+          .then((res) => {
+            const finalText = res.data.map((val) => val.description).join(',');
+            this.showMsg = true;
+            this.message = finalText;
+            console.log(res);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       }
       labelImage() {
-        this.implementing = true;
-        this.spinning = false;
+        this.showMsg = true;
+        this.message = 'Not yet implemented';
       }
       chooseFromGallery() {
-        this.implementing = true;
-        this.spinning = false;
+        this.showMsg = true;
+        this.message = 'Not yet implemented';
       }
     }
 

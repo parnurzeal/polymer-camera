@@ -3,11 +3,15 @@
     "public": "build/default",
     "rewrites": [
       {
+        "source": "/api/**",
+        "function": "app"
+      },
+      {
         "source": "!/__/**",
         "destination": "/index.html"
       },
       {
-        "source": "**/!(*.js|*.html|*.css|*.json|*.svg|*.png|*.jpg|*.jpeg)",
+        "source": "**/!(*.js|*.html|*.css|*.json|*.svg|*.png|*.jpg|*.jpeg|*.map)",
         "destination": "/index.html"
       }
     ]
